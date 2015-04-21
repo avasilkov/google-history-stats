@@ -51,7 +51,7 @@ def load_df_from_file(fn):
 
     return df
 
-def get_words_dictionary_from_df(df):
+def get_words_dictionary_from_df(df, remove_stp_wrds=False):
 
     all_words = defaultdict(int)
 
@@ -61,6 +61,15 @@ def get_words_dictionary_from_df(df):
             all_words[w] += 1
 
     del all_words['']
+    if remove_stp_wrds:
+        f = open('st-words.txt', 'r').read().splitlines()
+        for w in f:
+            if w in all_words:
+                del all_words[w]
+        buff_dic = dict(all_words)
+        for k in buff_dic.keys():
+            if len(k) < 3:
+                del all_words[k]
 
     return all_words
 
@@ -87,7 +96,7 @@ else:
             df = df.append(one_file_df)
     df.to_csv(csv_path)
 
-all_words = get_words_dictionary_from_df(df)
+all_words = get_words_dictionary_from_df(df, True)
 
 print('Number of different words: %s' % len(all_words))
 sorted_keys = sorted(all_words, key=all_words.get)
@@ -101,6 +110,7 @@ matplotlib.use('TkAgg') # <-- THIS MAKES IT FAST!
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 import calendar as cc
+
 
 fig = plt.figure(facecolor='w', edgecolor='w')
 plt.suptitle('Google search history stats')
@@ -125,9 +135,30 @@ interval_activity = [
                      (lambda x: x.month, 'Monthly', 2,
                       lambda x, p: cc.month_abbr[x])
                     ]
+
 for i, act in enumerate(interval_activity):
     formatter = FuncFormatter(act[3])
     add_interval_activity('%s search activity' % act[1], act[2], df,
                           (6, 6), (3, 2), i, act[0], formatter)
 fig.tight_layout()
 plt.show()
+
+fig = plt.figure(facecolor='w', edgecolor='w')
+plt.suptitle('Google search history stats')
+ax = plt.subplot(111, axisbg='w')
+ax.set_title('All Search Activity')
+searches_by_day = df.resample('1d', how='count')
+ax.bar(searches_by_day.index.values, searches_by_day['text'], align='center', width=0.8,
+                 color='#99ccff', edgecolor='#99ccff')
+
+plt.show()
+"""
+fig = plt.figure(facecolor='w', edgecolor='w')
+ax = plt.subplot(111, axisbg='w')
+searches_by_day = df.resample('1d', how='count')
+ax.plot(searches_by_day.index.values, searches_by_day['text'], linewidth=0.1,
+                 color='blue')
+ax.fill_between(searches_by_day.index.values, 0, searches_by_day['text'], facecolor='#99ccff', alpha=0.5)
+
+plt.show()
+"""
