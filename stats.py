@@ -57,7 +57,7 @@ def get_words_dictionary_from_df(df, remove_stp_wrds=False):
 
     parsed_words = []
     for query in df['text'].tolist():
-        for w in re.split('\W+|_', query):
+        for w in re.split('\W+|_', query.lower()):
             all_words[w] += 1
 
     del all_words['']
@@ -101,8 +101,9 @@ all_words = get_words_dictionary_from_df(df, True)
 print('Number of different words: %s' % len(all_words))
 sorted_keys = sorted(all_words, key=all_words.get)
 
-print('Top 20 words:')
-for key in reversed(sorted_keys[-20:]):
+words_to_print = 40
+print('Top %s words:' % words_to_print)
+for key in reversed(sorted_keys[-words_to_print:]):
     print('%s - %d' % (key, all_words[key]))
 
 import matplotlib
@@ -129,11 +130,11 @@ def add_interval_activity(title, xticks, df, fig_size, plot_size, n, how, xticks
     ax.set_title(title)
 
 interval_activity = [
-                     (lambda x: x.hour, 'Hourly', 2, lambda x, p: x),
+                     (lambda x: x.hour, 'Hourly', 2, lambda x, p: int(x)),
                      (lambda x: x.weekday, 'Daily', 1,
-                      lambda x, p: cc.day_abbr[x]),
+                      lambda x, p: cc.day_abbr[int(x)]),
                      (lambda x: x.month, 'Monthly', 2,
-                      lambda x, p: cc.month_abbr[x])
+                      lambda x, p: cc.month_abbr[int(x)])
                     ]
 
 for i, act in enumerate(interval_activity):
