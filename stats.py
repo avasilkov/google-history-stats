@@ -1,3 +1,7 @@
+"""
+author : http://vk.com/blahblahblahnya
+"""
+
 import json
 import os
 from collections import defaultdict
@@ -5,7 +9,8 @@ import html.parser
 
 def load_history_file(fn):
     return json.load(open(fn, 'r'))['event']
-path = './Searches/'
+
+path = '../Searches/'
 
 files = os.listdir(path)
 
