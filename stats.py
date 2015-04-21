@@ -10,21 +10,42 @@ import html.parser
 def load_history_file(fn):
     return json.load(open(fn, 'r'))['event']
 
+def load_all_files(path, files):
+    data = []
+    for f in files:
+        data.append(load_history_file(path + f))
+
+    return data
+
+def parse_html_codes(data):
+    h = html.parser.HTMLParser()
+    for f in data:
+        for query in f:
+            query['query']['query_text'] = h.unescape(query['query']['query_text'])
+
+    return data
+
+def get_words_dictionary(parsed_data):
+
+    all_words = defaultdict(int)
+
+    for f in parsed_data:
+        parsed_words = []
+        for query in f:
+            parsed_words += (query['query']['query_text']).split()
+        for w in parsed_words:
+            all_words[w] += 1
+
+    return all_words
+
 path = '../Searches/'
 
 files = os.listdir(path)
 
-all_words = defaultdict(int)
-h = html.parser.HTMLParser()
-history_f = h.unescape(load_history_file(path + files[0])[9]['query']['query_text'])
+data = parse_html_codes(load_all_files(path, files))
 
-for f in files:
-    history_f = load_history_file(path + f)
-    parsed_words = []
-    for query in history_f:
-        parsed_words += h.unescape(query['query']['query_text']).split()
-    for w in parsed_words:
-        all_words[w] += 1
+all_words = get_words_dictionary(data)
+
 
 print('Number of different words: %s' % len(all_words))
 sorted_keys = sorted(all_words, key=all_words.get)
