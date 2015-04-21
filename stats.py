@@ -99,14 +99,35 @@ for key in reversed(sorted_keys[-20:]):
 import matplotlib
 matplotlib.use('TkAgg') # <-- THIS MAKES IT FAST!
 import matplotlib.pyplot as plt
-fig = plt.Figure(facecolor='w')
-plt.suptitle('Google search history stats')
-hours_ax = plt.subplot(111)
-by_hours = df.groupby(lambda x: x.hour).size()
-hours_ax.bar(by_hours.index.values, by_hours.values, align='center', width=0.8,
-             color='#99ccff', edgecolor='#99ccff')
-hours_ax.set_xticks(by_hours.index.values)
-hours_ax.set_xlim([-0.5, 23.5])
-hours_ax.set_title('Hourly search activity')
+from matplotlib.ticker import FuncFormatter
+import calendar as cc
 
+fig = plt.figure(facecolor='w', edgecolor='w')
+plt.suptitle('Google search history stats')
+def add_interval_activity(title, xticks, df, fig_size, plot_size, n, how, xticks_f):
+    ax = plt.subplot2grid(fig_size,
+                          (n//(fig_size[1]//plot_size[1])*plot_size[0],
+                           n%(fig_size[1]//plot_size[1])*plot_size[1]),
+                          rowspan=plot_size[0],
+                          colspan=plot_size[1], axisbg='w')
+    by_interval = df.groupby(how).size()
+    ax.bar(by_interval.index.values, by_interval.values, align='center', width=0.8,
+                 color='#99ccff', edgecolor='#99ccff')
+    ax.set_xticks(by_interval.index.values[::xticks])
+    ax.set_xlim([min(by_interval.index.values) -0.5, max(by_interval.index.values) + 0.5])
+    ax.xaxis.set_major_formatter(xticks_f)
+    ax.set_title(title)
+
+interval_activity = [
+                     (lambda x: x.hour, 'Hourly', 2, lambda x, p: x),
+                     (lambda x: x.weekday, 'Daily', 1,
+                      lambda x, p: cc.day_abbr[x]),
+                     (lambda x: x.month, 'Monthly', 2,
+                      lambda x, p: cc.month_abbr[x])
+                    ]
+for i, act in enumerate(interval_activity):
+    formatter = FuncFormatter(act[3])
+    add_interval_activity('%s search activity' % act[1], act[2], df,
+                          (6, 6), (3, 2), i, act[0], formatter)
+fig.tight_layout()
 plt.show()
