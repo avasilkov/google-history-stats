@@ -92,11 +92,21 @@ all_words = get_words_dictionary_from_df(df)
 print('Number of different words: %s' % len(all_words))
 sorted_keys = sorted(all_words, key=all_words.get)
 
-for v in all_words.keys():
-    if ',' in v:
-        print(v)
-
 print('Top 20 words:')
 for key in reversed(sorted_keys[-20:]):
     print('%s - %d' % (key, all_words[key]))
 
+import matplotlib
+matplotlib.use('TkAgg') # <-- THIS MAKES IT FAST!
+import matplotlib.pyplot as plt
+fig = plt.Figure(facecolor='w')
+plt.suptitle('Google search history stats')
+hours_ax = plt.subplot(111)
+by_hours = df.groupby(lambda x: x.hour).size()
+hours_ax.bar(by_hours.index.values, by_hours.values, align='center', width=0.8,
+             color='#99ccff', edgecolor='#99ccff')
+hours_ax.set_xticks(by_hours.index.values)
+hours_ax.set_xlim([-0.5, 23.5])
+hours_ax.set_title('Hourly search activity')
+
+plt.show()
